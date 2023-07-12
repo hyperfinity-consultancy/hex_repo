@@ -1,0 +1,343 @@
+schemaVersion: 2
+meta:
+  sourceVersionId: 39708de7-2b13-4f99-a5b4-440a9f303eb4 # DO NOT CHANGE - Hex uses this to match up project versions when reimporting the file
+  description: null
+  projectId: 63b6b6e7-0a7c-4a46-b270-96860b20a044 # DO NOT CHANGE - Unique ID of the project from which this file was generated
+  title: DFS Demo
+  timezone: null
+  appTheme: SYS_PREF
+  codeLanguage: PYTHON
+  status: null
+  categories: []
+  castDecimalsDefault: true
+  logicQueryCacheTimeout: null
+  publishedQueryCacheTimeout: null
+projectAssets:
+  dataConnections: []
+  envVars: []
+  secrets: []
+sharedAssets:
+  secrets: []
+  vcsPackages: []
+  dataConnections:
+    - dataConnectionId: 65234313-f4c3-40ae-b05f-a398bb3f506a # [Demo] Hex Public Data (snowflake)
+    - dataConnectionId: d9766abe-53a2-40d0-9bf6-73ff02c86742 # DFS (snowflake)
+  externalFileIntegrations: []
+cells:
+  - cellType: SQL
+    cellId: 36654a70-98d9-4e0a-b007-6fe8d435aef2 # DO NOT CHANGE - Hex uses this to match up cells when reimporting the file, and detect any changes to existing cells
+    cellLabel: Range list
+    config:
+      source: select distinct range_name from dFS_CONSULTING.AGGREGATED_INFORMATION.HYP_PRODUCTS order by range_name
+      dataFrameCell: false
+      dataConnectionId: d9766abe-53a2-40d0-9bf6-73ff02c86742
+      resultVariableName: range_list
+      useRichDisplay: false
+      sqlCellOutputType: PANDAS
+      useQueryMode: false
+      castDecimals: true
+      useNativeDates: true
+      outputFilteredResult: true
+      allowDuplicateColumns: false
+      tableDisplayConfig: null
+  - cellType: INPUT
+    cellId: b06fbd36-13f5-4461-83b9-cf6d90e60204 # DO NOT CHANGE - Hex uses this to match up cells when reimporting the file, and detect any changes to existing cells
+    cellLabel: Choose A Range
+    config:
+      inputType: DROPDOWN
+      name: choose_a_range
+      outputType: DYNAMIC
+      options:
+        valueOptions:
+          dfName: range_list
+          columnName: RANGE_NAME
+          variableName: range_list['RANGE_NAME']
+      defaultValue: Zinc
+  - cellType: SQL
+    cellId: 16870c49-1ce9-4b09-bdc4-246da7511a08 # DO NOT CHANGE - Hex uses this to match up cells when reimporting the file, and detect any changes to existing cells
+    cellLabel: Dataframe
+    config:
+      source: |-
+        SELECT * FROM DFS_CONSULTING.AGGREGATED_INFORMATION.HYP_PRODUCT_DATE_STATS A
+        LEFT JOIN (SELECT DISTINCT PRODUCT_CODE, UNIT_VARIANT_NAME, RANGE_NAME FROM DFS_CONSULTING.AGGREGATED_INFORMATION.HYP_PRODUCTS) B
+        ON A.PRODUCT_CODE = B.PRODUCT_CODE
+        WHERE RANGE_NAME = {{choose_a_range }}
+      dataFrameCell: false
+      dataConnectionId: d9766abe-53a2-40d0-9bf6-73ff02c86742
+      resultVariableName: dataframe
+      useRichDisplay: false
+      sqlCellOutputType: PANDAS
+      useQueryMode: false
+      castDecimals: true
+      useNativeDates: true
+      outputFilteredResult: true
+      allowDuplicateColumns: false
+      tableDisplayConfig: null
+  - cellType: CODE
+    cellId: b74932fd-a982-4f32-82e0-9c12cf472056 # DO NOT CHANGE - Hex uses this to match up cells when reimporting the file, and detect any changes to existing cells
+    cellLabel: null
+    config:
+      source: |
+        tot_sales = dataframe['TOTAL_ITEM_VALUE'].sum().astype(int)
+  - cellType: MARKDOWN
+    cellId: a6b09398-1b85-41e9-bbe3-e4a6927089cd # DO NOT CHANGE - Hex uses this to match up cells when reimporting the file, and detect any changes to existing cells
+    cellLabel: null
+    config:
+      source: In the range {{choose_a_range}} we have a total of £{{'{:,}'.format(tot_sales)}}
+  - cellType: METRIC
+    cellId: d0d4573f-7be8-4f2a-92d1-f73ee78fb4d9 # DO NOT CHANGE - Hex uses this to match up cells when reimporting the file, and detect any changes to existing cells
+    cellLabel: null
+    config:
+      title: Total Sales for {{choose_a_range}}
+      valueVariableName: tot_sales
+      showComparison: false
+      comparisonType: VALUE
+      comparisonVariableName: null
+      comparisonFormat: null
+      comparisonLabel: ""
+      displayFormat:
+        format: CURRENCY
+        currency: GBP
+        columnType: NUMBER
+        numDecimalDigits: 0
+        abbreviateLargeNumbers: false
+      valueColumn: null
+      valueRowIndex: null
+      comparisonColumn: null
+      comparisonRowIndex: 0
+  - cellType: CODE
+    cellId: c6c3b0ba-6d23-40ea-b919-32f0734c697e # DO NOT CHANGE - Hex uses this to match up cells when reimporting the file, and detect any changes to existing cells
+    cellLabel: null
+    config:
+      source: |-
+        summary = dataframe.groupby('UNIT_VARIANT_NAME').agg({'TOTAL_ITEM_VALUE': 'sum',
+        'HYP_PRODUCT_DATE_STATS.PRODUCT_CODE': 'nunique'}).reset_index().rename(columns={'TOTAL_ITEM_VALUE': 'Total Sales', 'HYP_PRODUCT_DATE_STATS.PRODUCT_CODE': 'Total Products'}).sort_values(by='Total Sales', ascending = False)
+  - cellType: CHARTV2
+    cellId: da3d03e0-fdf7-49ab-bf9f-033d20b1e472 # DO NOT CHANGE - Hex uses this to match up cells when reimporting the file, and detect any changes to existing cells
+    cellLabel: null
+    config:
+      height: null
+      chartSpec:
+        type: layered
+        layers:
+          - id: c22b4b5c-da70-4653-842c-f6380f2d98bb
+            xAxis:
+              type: string
+              style:
+                grid:
+                  style: solid
+                ticks: {}
+                labels: {}
+              dataFrameColumn: UNIT_VARIANT_NAME
+            series:
+              - id: 76c3036b-faa8-4d60-8912-d195342901e8
+                type: bar
+                axis:
+                  type: number
+                  style:
+                    grid:
+                      style: solid
+                    zero: true
+                    ticks: {}
+                    labels: {}
+                  aggregate: sum
+                dataFrameColumns:
+                  - Total Sales
+                colorOrder: ascending
+                color:
+                  type: static
+                  color: "#ff4ca4"
+                opacity:
+                  type: static
+                  value: 1
+                tooltip:
+                  type: auto
+                dataLabels:
+                  angle: 90
+                  position: inside-end
+                barWidth: 1
+                orientation: vertical
+                layout: grouped
+            dataFrame: summary
+        settings:
+          legend:
+            position: right
+          tooltip: true
+          selectionEnabled: false
+      chartSelection: {}
+      resultVariable: filter_result
+      displayTableConfig:
+        pageSize: 50
+        height: null
+        hideIcons: false
+        hideIndex: false
+        defaultSortColumn: null
+        defaultSortIndexColumn: null
+        defaultSortDirection: ASC
+        conditionalFormatting: null
+        filters: null
+        columnProperties:
+          - originalName: Total Sales
+            renameTo: null
+            size: 113
+            wrapText: null
+            displayFormat: null
+          - originalName: UNIT_VARIANT_NAME
+            renameTo: null
+            size: 202
+            wrapText: null
+            displayFormat: null
+        columnOrdering: null
+        pinnedColumns: null
+        hiddenColumns: null
+  - cellType: CODE
+    cellId: 1b8edd71-7bcd-4e8c-ba08-5a54e21aea2d # DO NOT CHANGE - Hex uses this to match up cells when reimporting the file, and detect any changes to existing cells
+    cellLabel: null
+    config:
+      source: |
+        import altair as alt
+        alt.Chart(summary).mark_bar().encode(x=alt.X('UNIT_VARIANT_NAME', sort=None), 
+        y='Total Sales', tooltip = ['UNIT_VARIANT_NAME', 'Total Sales'])
+  - cellType: CODE
+    cellId: ab3db1b6-e508-42cf-ac5e-ccac0793f6b7 # DO NOT CHANGE - Hex uses this to match up cells when reimporting the file, and detect any changes to existing cells
+    cellLabel: null
+    config:
+      source: summary.dtypes
+  - cellType: CHARTV2
+    cellId: eb4b9927-78d2-46f0-9dbc-382cacfa6254 # DO NOT CHANGE - Hex uses this to match up cells when reimporting the file, and detect any changes to existing cells
+    cellLabel: null
+    config:
+      height: null
+      chartSpec:
+        type: layered
+        layers:
+          - id: 35bb2891-28cb-40c5-b3d4-8909ecb7a87a
+            xAxis:
+              type: number
+              scale: log
+              style:
+                ticks: {}
+                labels: {}
+              dataFrameColumn: Total Sales
+            series:
+              - id: 1ac22dd6-e245-4b92-9c34-cc77e165c061
+                type: scatter
+                axis:
+                  type: number
+                  style:
+                    ticks: {}
+                    labels: {}
+                dataFrameColumns:
+                  - Total Products
+                colorOrder: ascending
+                color:
+                  type: static
+                  color: "#ff4ca4"
+                opacity:
+                  type: static
+                  value: 1
+                tooltip:
+                  type: auto
+                filled: true
+                size: 60
+            dataFrame: summary
+        settings:
+          legend:
+            position: right
+          tooltip: true
+          selectionEnabled: false
+      chartSelection: {}
+      resultVariable: filter_result_2
+      displayTableConfig: null
+appLayout:
+  fullWidth: false
+  visibleMetadataFields:
+    - NAME
+    - DESCRIPTION
+    - AUTHOR
+    - LAST_EDITED
+    - LAST_RUN
+    - CATEGORIES
+    - STATUS
+    - TABLE_OF_CONTENTS
+  rows:
+    - columns:
+        - start: 0
+          end: 30
+          elements:
+            - showSource: false
+              hideOutput: false
+              type: CELL
+              cellId: b06fbd36-13f5-4461-83b9-cf6d90e60204
+              height: null
+              showLabel: true
+    - columns:
+        - start: 0
+          end: 120
+          elements:
+            - showSource: false
+              hideOutput: false
+              type: CELL
+              cellId: b74932fd-a982-4f32-82e0-9c12cf472056
+              height: null
+              showLabel: true
+    - columns:
+        - start: 0
+          end: 120
+          elements:
+            - showSource: false
+              hideOutput: false
+              type: CELL
+              cellId: a6b09398-1b85-41e9-bbe3-e4a6927089cd
+              height: null
+              showLabel: true
+    - columns:
+        - start: 0
+          end: 30
+          elements:
+            - showSource: false
+              hideOutput: false
+              type: CELL
+              cellId: d0d4573f-7be8-4f2a-92d1-f73ee78fb4d9
+              height: null
+              showLabel: true
+    - columns:
+        - start: 0
+          end: 120
+          elements:
+            - showSource: false
+              hideOutput: false
+              type: CELL
+              cellId: da3d03e0-fdf7-49ab-bf9f-033d20b1e472
+              height: null
+              showLabel: true
+    - columns:
+        - start: 0
+          end: 120
+          elements:
+            - showSource: false
+              hideOutput: false
+              type: CELL
+              cellId: 1b8edd71-7bcd-4e8c-ba08-5a54e21aea2d
+              height: null
+              showLabel: true
+    - columns:
+        - start: 0
+          end: 120
+          elements:
+            - showSource: false
+              hideOutput: false
+              type: CELL
+              cellId: ab3db1b6-e508-42cf-ac5e-ccac0793f6b7
+              height: null
+              showLabel: true
+    - columns:
+        - start: 0
+          end: 120
+          elements:
+            - showSource: false
+              hideOutput: false
+              type: CELL
+              cellId: eb4b9927-78d2-46f0-9dbc-382cacfa6254
+              height: null
+              showLabel: true
